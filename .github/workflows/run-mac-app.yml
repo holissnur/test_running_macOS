@@ -1,0 +1,39 @@
+name: Jalankan Mac App dan Ambil PDF
+
+on:
+  push:
+    branches: [ "main" ] # Berjalan otomatis saat ada push ke branch main
+  workflow_dispatch:     # Memungkinkan Anda menjalankan ini secara manual dari tab Actions
+
+jobs:
+  run-app:
+    runs-on: macos-latest # Wajib menggunakan runner macOS untuk mengeksekusi aplikasi Mac
+
+    steps:
+    # 1. Mengunduh kode dari repositori ke dalam komputer virtual runner
+    - name: Check out repository
+      uses: actions/checkout@v4
+
+    # 2. Memberikan izin eksekusi (permission) pada aplikasi agar tidak diblokir
+    - name: Set execute permission for Mac App
+      run: |
+        chmod +x ./Mac-App-Output/merge_script.app/Contents/MacOS/* 
+        # Catatan: Jika aplikasi Anda berbentuk CLI biner biasa (bukan folder .app), gunakan:
+        # chmod +x ./Mac-App-Output/merge_script
+
+    # 3. Menjalankan aplikasi macOS untuk memproses dan menghasilkan berkas PDF
+    - name: Run macOS Application
+      run: |
+        ./Mac-App-Output/merge_script.app/Contents/MacOS/*
+        # Jika aplikasi membutuhkan parameter folder output, sesuaikan perintahnya, misal:
+        # ./Mac-App-Output/NamaAplikasiAnda --output ./hasil-pdf
+
+    # 4. Mengunggah folder hasil dan berkas PDF ke tab Artifacts GitHub agar bisa diunduh
+    - name: Upload Output Folder and PDF Artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: hasil-pdf-dan-output                  # Nama berkas ZIP yang akan diunduh nanti
+        path: |
+          ./path/ke/folder-output-aplikasi/        # Ganti dengan lokasi folder output yang dihasilkan aplikasi
+          ./*.pdf                                  # Mengambil semua file PDF di direktori utama jika ditaruh di luar
+        if-no-files-found: error                   # Membantu mendeteksi error jika aplikasi gagal membuat PDF
