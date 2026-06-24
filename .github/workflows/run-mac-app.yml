@@ -16,8 +16,8 @@ jobs:
     # Langkah 1: Memeriksa ketersediaan file PDF asli di dalam repositori
     - name: Verify Source Directory
       run: |
-        echo "=== Memeriksa file PDF di dalam Mac-App-Output/SourceFile ==="
-        ls -la ./Mac-App-Output/SourceFile
+        echo "=== Memeriksa file PDF di dalam Mac-App-Output/merge_script.app/Contents/MacOS/SourceFile ==="
+        ls -la ./Mac-App-Output/merge_script.app/Contents/MacOS/SourceFile
 
     # Langkah 2: Membuka proteksi keamanan macOS khusus untuk merge_script
     - name: Bypass macOS Gatekeeper and Set Permissions
