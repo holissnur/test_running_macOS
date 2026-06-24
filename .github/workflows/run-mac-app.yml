@@ -13,12 +13,13 @@ jobs:
     - name: Check out repository
       uses: actions/checkout@v4
 
-    # Langkah 1: Menyiapkan folder SourceFile beserta file PDF uji coba
-    - name: Prepare Source Directory
+    # Langkah 1: Membuat file PDF pengujian yang valid & terbaca oleh sistem aplikasi Anda
+    - name: Prepare Source Directory with Valid PDFs
       run: |
         mkdir -p ./SourceFile
-        echo "PDF Dummy 1" > ./SourceFile/test1.pdf
-        echo "PDF Dummy 2" > ./SourceFile/test2.pdf
+        # Mengonversi teks menjadi file PDF asli menggunakan perkakas bawaan macOS (enscript & pstopdf)
+        echo "Halaman Dokumen Pertama" | enscript -o - | pstopdf -i -o ./SourceFile/test1.pdf
+        echo "Halaman Dokumen Kedua" | enscript -o - | pstopdf -i -o ./SourceFile/test2.pdf
         echo "=== Isi folder SourceFile ==="
         ls -la ./SourceFile
 
@@ -31,27 +32,18 @@ jobs:
     # Langkah 3: Menjalankan aplikasi langsung ke berkas biner utamanya
     - name: Run macOS Application
       run: |
-        # Mengeksekusi file biner asli di dalam folder macOS
-        ./Mac-App-Output/merge_script.app/Contents/MacOS/merge_script > aplikasi_output.log 2>&1 || true
+        ./Mac-App-Output/merge_script.app/Contents/MacOS/merge_script
 
-    # Langkah 4: Melacak hasil ekstraksi folder MergeOut dan membaca log jika terjadi error
-    - name: Debug - Cari folder MergeOut dan Baca Catatan Sistem
+    # Langkah 4: Memastikan isi file di dalam MergeOut sudah tercipta
+    - name: Debug - Cek Hasil PDF di MergeOut
       run: |
-        echo "=== CATATAN LOG INTERNAL APLIKASI ==="
-        cat aplikasi_output.log || echo "Tidak ada catatan log."
-        echo ""
-        echo "=== MENCARI LOKASI FOLDER MERGEOUT ==="
-        find . -type d -name "MergeOut"
-        echo ""
-        echo "=== STRUKTUR DIREKTORI UTAMA ==="
-        ls -la
+        echo "=== Isi Berkas di Dalam Folder MergeOut ==="
+        ls -la ./MergeOut
 
-    # Langkah 5: Mengunggah folder MergeOut beserta seluruh isi PDF hasil gabungan
+    # Langkah 5: Mengunggah folder MergeOut ke tab Artifacts GitHub
     - name: Upload Merged PDF Output
       uses: actions/upload-artifact@v4
       with:
         name: hasil-pdf-gabungan
-        path: |
-          **/MergeOut/
-          **/MergeOut/*.pdf
-        if-no-files-found: warn
+        path: ./MergeOut/
+        if-no-files-found: error # Mengembalikan ke 'error' untuk menjamin file wajib ada
