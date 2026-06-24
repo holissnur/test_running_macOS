@@ -25,22 +25,27 @@ jobs:
         chmod -R +x ./Mac-App-Output/merge_script.app/
         xattr -dr com.apple.quarantine ./Mac-App-Output/merge_script.app || true
 
-    # Langkah 3: Menjalankan aplikasi penggabung PDF Anda
-    - name: Run macOS Application
+    # Langkah 3: Berpindah direktori ke folder biner asli sebelum menjalankan aplikasi
+    - name: Run macOS Application from its Core Directory
       run: |
-        ./Mac-App-Output/merge_script.app/Contents/MacOS/merge_script
+        # Berpindah ke folder biner utama agar aplikasi tidak bingung mencari jalan pulang
+        cd ./Mac-App-Output/merge_script.app/Contents/MacOS/
+        
+        # Jalankan aplikasi Anda
+        ./merge_script
 
-    # Langkah 4: Memastikan berkas keluaran sudah terisi di dalam MergeOut
-    - name: Debug - Cek Hasil PDF di MergeOut
+    # Langkah 4: Melacak di mana folder MergeOut tercipta secara mutlak
+    - name: Debug - Cari folder MergeOut yang Baru Saja Dibuat
       run: |
-        echo "=== Isi Berkas di Dalam Folder MergeOut ==="
-        ls -la ./MergeOut
+        echo "=== Mencari semua folder bernama MergeOut di seluruh workspace ==="
+        find . -type d -name "MergeOut"
 
-    # Langkah 5: Mengunggah folder MergeOut menggunakan jalur tunggal yang valid
+    # Langkah 5: Mengunggah hasil folder MergeOut berdasarkan pencarian absolut
     - name: Upload Merged PDF Output
       uses: actions/upload-artifact@v4
       with:
         name: hasil-pdf-gabungan
-        path: ./MergeOut
+        # Menggunakan pencarian bintang ganda yang sudah dibersihkan agar mencakup subfolder dalam .app
+        path: "**/MergeOut"
         if-no-files-found: error
-        include-hidden-files: true # Memastikan berkas PDF terdeteksi sistem unggah v4
+        include-hidden-files: true
