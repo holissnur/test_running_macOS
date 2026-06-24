@@ -34,6 +34,6 @@ jobs:
       with:
         name: hasil-pdf-dan-output                  # Nama berkas ZIP yang akan diunduh nanti
         path: |
-          ./path/ke/folder-output-aplikasi/        # Ganti dengan lokasi folder output yang dihasilkan aplikasi
+          ../Mac-App-Output/        # Ganti dengan lokasi folder output yang dihasilkan aplikasi
           ./*.pdf                                  # Mengambil semua file PDF di direktori utama jika ditaruh di luar
         if-no-files-found: error                   # Membantu mendeteksi error jika aplikasi gagal membuat PDF
