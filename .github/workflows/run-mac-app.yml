@@ -13,41 +13,40 @@ jobs:
     - name: Check out repository
       uses: actions/checkout@v4
 
-    # Langkah 1: Buat folder SourceFile dan taruh file PDF dummy untuk pengujian
+    # Langkah 1: Menyiapkan folder SourceFile beserta file PDF uji coba
     - name: Prepare Source Directory
       run: |
         mkdir -p ./SourceFile
-        # Membuat file PDF kosong untuk memastikan aplikasi memiliki bahan yang mau digabung
         echo "PDF Dummy 1" > ./SourceFile/test1.pdf
         echo "PDF Dummy 2" > ./SourceFile/test2.pdf
         echo "=== Isi folder SourceFile ==="
         ls -la ./SourceFile
 
-    # Langkah 2: Berikan izin akses eksekusi & hapus blokir keamanan Apple
+    # Langkah 2: Membuka proteksi keamanan macOS khusus untuk merge_script
     - name: Bypass macOS Gatekeeper and Set Permissions
       run: |
-        chmod +x ./Mac-App-Output/merge_script.app/Contents/MacOS/*
+        chmod -R +x ./Mac-App-Output/merge_script.app/
         xattr -dr com.apple.quarantine ./Mac-App-Output/merge_script.app || true
 
-    # Langkah 3: Jalankan aplikasi menggunakan monitor virtual agar tidak crash (PENTING)
-    - name: Run macOS Application with Virtual Display
+    # Langkah 3: Menjalankan aplikasi langsung ke berkas biner utamanya
+    - name: Run macOS Application
       run: |
-        # Mengaktifkan layar virtual Xcode Simulators agar aplikasi UI bisa berjalan tanpa layar fisik
-        sudo /usr/libexec/ConfigureSafeBoot
-        
-        # Jalankan aplikasi Anda dan simpan catatan error-nya ke berkas log
-        ./Mac-App-Output/merge_script.app/Contents/MacOS/* > aplikasi_output.log 2>&1 || true
+        # Mengeksekusi file biner asli di dalam folder macOS
+        ./Mac-App-Output/merge_script.app/Contents/MacOS/merge_script > aplikasi_output.log 2>&1 || true
 
-    # Langkah 4: Jika folder MergeOut tidak ada, langkah ini akan membaca mengapa aplikasinya error
-    - name: Debug - Baca Penyebab Aplikasi Error
+    # Langkah 4: Melacak hasil ekstraksi folder MergeOut dan membaca log jika terjadi error
+    - name: Debug - Cari folder MergeOut dan Baca Catatan Sistem
       run: |
-        echo "=== CATATAN SYSTEM LOG APLIKASI ==="
+        echo "=== CATATAN LOG INTERNAL APLIKASI ==="
         cat aplikasi_output.log || echo "Tidak ada catatan log."
         echo ""
-        echo "=== STRUKTUR FOLDER SAAT INI ==="
-        ls -R .
+        echo "=== MENCARI LOKASI FOLDER MERGEOUT ==="
+        find . -type d -name "MergeOut"
+        echo ""
+        echo "=== STRUKTUR DIREKTORI UTAMA ==="
+        ls -la
 
-    # Langkah 5: Mengunggah hasil folder MergeOut (di mana pun ia tercipta)
+    # Langkah 5: Mengunggah folder MergeOut beserta seluruh isi PDF hasil gabungan
     - name: Upload Merged PDF Output
       uses: actions/upload-artifact@v4
       with:
@@ -55,4 +54,4 @@ jobs:
         path: |
           **/MergeOut/
           **/MergeOut/*.pdf
-        if-no-files-found: warn # Mengubah ke 'warn' agar workflow tidak langsung merah/gagal jika folder kosong
+        if-no-files-found: warn
