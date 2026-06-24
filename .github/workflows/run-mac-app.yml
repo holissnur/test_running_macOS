@@ -34,5 +34,5 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: hasil-pdf-gabungan
-        path: ./MergeOut/
+        path: ./Mac-App-Output/MergeOut/
         if-no-files-found: error
