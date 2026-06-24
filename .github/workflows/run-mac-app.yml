@@ -1,4 +1,4 @@
-name: Jalankan Mac App dan Ambil PDF
+name: Jalankan Mac App Penggabung PDF
 
 on:
   push:
@@ -13,23 +13,26 @@ jobs:
     - name: Check out repository
       uses: actions/checkout@v4
 
+    # Langkah 2: Memberikan izin akses eksekusi pada aplikasi macOS Anda
     - name: Set execute permission for Mac App
       run: |
         chmod +x ./Mac-App-Output/merge_script.app/Contents/MacOS/*
 
+    # Langkah 3: Menjalankan aplikasi untuk menggabungkan PDF dari SourceFile ke MergeOut
     - name: Run macOS Application
       run: |
         ./Mac-App-Output/merge_script.app/Contents/MacOS/*
 
-    # Langkah pelacakan otomatis jika terjadi error pada lokasi file
-    - name: Debug - Cari file PDF di dalam workspace
+    # Langkah 4: Debug untuk memastikan folder MergeOut berhasil dibuat dan berisi PDF
+    - name: Debug - Periksa isi folder MergeOut
       run: |
-        echo "=== Mencari file PDF yang berhasil dibuat ==="
-        find . -name "*.pdf"
+        echo "=== Isi Folder MergeOut ==="
+        ls -la ./MergeOut || echo "Folder MergeOut tidak ditemukan"
 
-    - name: Upload Output Folder and PDF Artifacts
+    # Langkah 5: Mengunggah folder MergeOut yang berisi file PDF hasil gabungan
+    - name: Upload Merged PDF Output
       uses: actions/upload-artifact@v4
       with:
-        name: hasil-pdf-dan-output
-        path: ./Mac-App-Output/
+        name: hasil-pdf-gabungan
+        path: ./MergeOut/
         if-no-files-found: error
