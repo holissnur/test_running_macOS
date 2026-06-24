@@ -13,7 +13,7 @@ jobs:
     - name: Check out repository
       uses: actions/checkout@v4
 
-    # Langkah 1: Memastikan folder SourceFile di dalam Mac-App-Output terbaca dengan benar
+    # Langkah 1: Memeriksa ketersediaan file PDF asli di dalam repositori
     - name: Verify Source Directory
       run: |
         echo "=== Memeriksa file PDF di dalam Mac-App-Output/SourceFile ==="
@@ -30,20 +30,17 @@ jobs:
       run: |
         ./Mac-App-Output/merge_script.app/Contents/MacOS/merge_script
 
-    # Langkah 4: Memastikan berkas keluaran sudah terisi di dalam MergeOut setelah aplikasi berjalan
+    # Langkah 4: Memastikan berkas keluaran sudah terisi di dalam MergeOut
     - name: Debug - Cek Hasil PDF di MergeOut
       run: |
         echo "=== Isi Berkas di Dalam Folder MergeOut ==="
-        ls -la ./MergeOut || echo "Folder MergeOut di root tidak ditemukan"
-        echo "=== Cek apakah MergeOut dibuat di dalam Mac-App-Output ==="
-        ls -la ./Mac-App-Output/MergeOut || echo "Folder MergeOut di Mac-App-Output tidak ditemukan"
+        ls -la ./MergeOut
 
-    # Langkah 5: Mengunggah folder MergeOut ke Artifacts GitHub (Mencari di semua lokasi)
+    # Langkah 5: Mengunggah folder MergeOut menggunakan jalur tunggal yang valid
     - name: Upload Merged PDF Output
       uses: actions/upload-artifact@v4
       with:
         name: hasil-pdf-gabungan
-        path: |
-          **/MergeOut/
-          **/MergeOut/*.pdf
+        path: ./MergeOut
         if-no-files-found: error
+        include-hidden-files: true # Memastikan berkas PDF terdeteksi sistem unggah v4
