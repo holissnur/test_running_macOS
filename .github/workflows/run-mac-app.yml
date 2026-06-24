@@ -13,26 +13,42 @@ jobs:
     - name: Check out repository
       uses: actions/checkout@v4
 
-    # Langkah 2: Memberikan izin akses eksekusi pada aplikasi macOS Anda
-    - name: Set execute permission for Mac App
+    # Langkah 1: Buat folder SourceFile di root dan pastikan isinya terbaca
+    - name: Prepare Source Directory
+      run: |
+        mkdir -p ./SourceFile
+        echo "=== Isi folder SourceFile sebelum aplikasi berjalan ==="
+        ls -la ./SourceFile
+
+    # Langkah 2: Berikan hak eksekusi DAN hilangkan status karantina macOS (Bypass Gatekeeper)
+    - name: Bypass macOS Gatekeeper and Set Permissions
       run: |
         chmod +x ./Mac-App-Output/merge_script.app/Contents/MacOS/*
+        # Menghapus flag karantina Apple agar aplikasi tidak diblokir secara diam-diam
+        xattr -dr com.apple.quarantine ./Mac-App-Output/NamaAplikasiAnda.app || true
 
-    # Langkah 3: Menjalankan aplikasi untuk menggabungkan PDF dari SourceFile ke MergeOut
+    # Langkah 3: Jalankan aplikasi di dalam direktori kerja yang tepat
     - name: Run macOS Application
       run: |
         ./Mac-App-Output/merge_script.app/Contents/MacOS/*
 
-    # Langkah 4: Debug untuk memastikan folder MergeOut berhasil dibuat dan berisi PDF
-    - name: Debug - Periksa isi folder MergeOut
+    # Langkah 4: Pencarian cerdas lokasi folder MergeOut jika posisinya bergeser
+    - name: Debug - Cari folder MergeOut di seluruh workspace
       run: |
-        echo "=== Isi Folder MergeOut ==="
-        ls -la ./MergeOut || echo "Folder MergeOut tidak ditemukan"
+        echo "=== Memeriksa apakah MergeOut ada di Root ==="
+        ls -la ./MergeOut || true
+        echo "=== Memeriksa apakah MergeOut ada di Mac-App-Output ==="
+        ls -la ./Mac-App-Output/MergeOut || true
+        echo "=== Pencarian menyeluruh folder bernama MergeOut ==="
+        find . -type d -name "MergeOut"
 
-    # Langkah 5: Mengunggah folder MergeOut yang berisi file PDF hasil gabungan
+    # Langkah 5: Mengunggah hasil menggunakan pola pencarian fleksibel (**/*)
     - name: Upload Merged PDF Output
       uses: actions/upload-artifact@v4
       with:
         name: hasil-pdf-gabungan
-        path: ./Mac-App-Output/MergeOut/
+        # Menggunakan pola wildcard agar tetap terunggah di mana pun folder MergeOut dibuat
+        path: |
+          **/MergeOut/
+          **/MergeOut/*.pdf
         if-no-files-found: error
